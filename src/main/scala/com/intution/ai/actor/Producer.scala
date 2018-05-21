@@ -4,10 +4,10 @@ import akka.actor.{Actor, ActorRef}
 import com.intution.ai.actor.Messages.NextItem
 import com.intution.ai.data.Item
 
-class Producer(router: ActorRef) extends Actor {
+class Producer extends Actor {
 
   override def receive: Receive = {
-    case NextItem => router ! produceNextItem()
+    case NextItem => sender ! produceNextItem()
   }
 
   def produceNextItem(): Item[Int] = Item(dataSource.next())

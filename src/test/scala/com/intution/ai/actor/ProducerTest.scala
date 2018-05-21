@@ -16,7 +16,7 @@ class ProducerTest() extends TestKit(ActorSystem("ProducerSpec")) with ImplicitS
   describe("Producer#receive default behaviour") {
 
     it("should produce next item only when NextItem message is received") {
-      val producer = system.actorOf(Props(new Producer(testActor)), name="TestProducer")
+      val producer = system.actorOf(Props[Producer], name="TestProducer")
       producer ! NextItem
       expectMsg(Item(1))
 
