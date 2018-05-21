@@ -7,8 +7,8 @@ import com.intution.ai.data.Item
 import scala.collection.immutable.Queue
 
 class RateControlledQueueActor(producer: ActorRef, size: Int) extends Actor {
-  var itemQueue: Queue[Item[Int]] = Queue.empty[Item[Int]]
-  var consumerQueue: Queue[ActorRef] = Queue.empty[ActorRef]
+  var nonConsumedItemQueue: Queue[Item[Int]] = Queue.empty[Item[Int]]
+  var waitingConsumerQueue: Queue[ActorRef] = Queue.empty[ActorRef]
 
   override def preStart(): Unit = {
     super.preStart()
@@ -19,31 +19,31 @@ class RateControlledQueueActor(producer: ActorRef, size: Int) extends Actor {
 
     case NextItem =>
       val consumer = sender()
-      if (itemQueue.nonEmpty) {
-        val (item, modifiedItemQueue) = itemQueue.dequeue
-        itemQueue = modifiedItemQueue
+      if (nonConsumedItemQueue.nonEmpty) {
+        val (item, remainingNonConsumedItemQueue) = nonConsumedItemQueue.dequeue
+        nonConsumedItemQueue = remainingNonConsumedItemQueue
         consumer ! item
       } else {
-        val modifiedConsumerQueue = consumerQueue.enqueue(consumer)
-        consumerQueue = modifiedConsumerQueue
+        val newWaitingConsumerQueue = waitingConsumerQueue.enqueue(consumer)
+        waitingConsumerQueue = newWaitingConsumerQueue
       }
 
     case item: Item[Int] =>
-      if (consumerQueue.nonEmpty) {
-        val (consumer, modifiedConsumerQueue) = consumerQueue.dequeue
-        consumerQueue = modifiedConsumerQueue
+      if (waitingConsumerQueue.nonEmpty) {
+        val (consumer, remainingWaitingConsumerQueue) = waitingConsumerQueue.dequeue
+        waitingConsumerQueue = remainingWaitingConsumerQueue
         consumer ! item
         producer ! NextItem
       } else {
-        val modifiedItemQueue = itemQueue.enqueue(item)
-        itemQueue = modifiedItemQueue
+        val modifiedItemQueue = nonConsumedItemQueue.enqueue(item)
+        nonConsumedItemQueue = modifiedItemQueue
       }
 
     case QueueQuery => sender ! {
-      QueueQueryResult[Int](itemQueue)
+      QueueQueryResult[Int](nonConsumedItemQueue)
     }
 
-    case WaitingConsumerQuery => sender ! WaitingConsumerQueryResult(consumerQueue.map(_.path))
+    case WaitingConsumerQuery => sender ! WaitingConsumerQueryResult(waitingConsumerQueue.map(_.path))
 
   }
 

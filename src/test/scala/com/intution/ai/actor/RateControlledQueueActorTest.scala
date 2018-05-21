@@ -27,7 +27,7 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
   describe("RateControlledQueueActor#receive") {
 
     describe("NextItem") {
-      it("should dequeue the next item from item queue if available and give to consumer") {
+      it("should dequeue the next item from non-consumed item queue if available and give to consumer") {
         val producer = system.actorOf(Props[Producer], "test-producer")
         val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
         Thread.sleep(200)
@@ -35,7 +35,7 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
         expectMsg(200.millis, Item(1))
       }
 
-      it("should enqueue the consumer into consumer queue if next item not available") {
+      it("should enqueue the consumer into waiting consumer queue if any non-consumed item not available") {
         val producer = system.actorOf(Props[Producer], "test-producer")
         val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
         Thread.sleep(200)
@@ -51,7 +51,7 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
     }
 
     describe("Item") {
-      it("should enqueue item to itemQueue if consumerQueue is empty") {
+      it("should enqueue item to non-consumed item queue if waiting consumer queue is empty") {
         val producer = system.actorOf(Props[Producer], "test-producer")
         val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
         queueActor ! QueueQuery
