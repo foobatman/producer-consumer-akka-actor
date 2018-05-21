@@ -7,10 +7,16 @@ import com.intution.ai.data.Item
 class Producer extends Actor {
 
   override def receive: Receive = {
-    case NextItem => sender ! produceNextItem()
+    case NextItem => {
+      val queueActor = sender
+      produceNextItem() match {
+        case Some(item) => queueActor ! item
+        case None => // If no data available, don't do anything
+      }
+    }
   }
 
-  def produceNextItem(): Item[Int] = Item(dataSource.next())
+  def produceNextItem(): Option[Item[Int]] = if (dataSource.hasNext) Some(Item(dataSource.next())) else None
 
   private lazy val dataSource: Iterator[Int] = {
     1 to 10
