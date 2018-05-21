@@ -1,12 +1,12 @@
 package com.intution.ai.actor
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorPath, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.intution.ai.actor.Messages.{NextItem, QueueQuery, QueueQueryResult}
+import com.intution.ai.actor.Messages._
 import com.intution.ai.data.Item
 import org.scalatest.{BeforeAndAfterAll, FunSpecLike, Matchers}
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.collection.immutable.Queue
 
 class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlledQueueActorTest")) with ImplicitSender
@@ -26,8 +26,32 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
   }
   describe("RateControlledQueueActor#receive") {
 
+    describe("NextItem") {
+      it("should dequeue the next item from item queue if available and give to consumer") {
+        val producer = system.actorOf(Props[Producer], "test-producer")
+        val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
+        Thread.sleep(200)
+        queueActor ! NextItem
+        expectMsg(200.millis, Item(1))
+      }
+
+      it("should enqueue the consumer into consumer queue if next item not available") {
+        val producer = system.actorOf(Props[Producer], "test-producer")
+        val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
+        Thread.sleep(200)
+        queueActor ! NextItem
+        expectMsg(200.millis, Item(1))
+        Thread.sleep(200)
+        queueActor ! NextItem
+
+        queueActor ! WaitingConsumerQuery
+        expectMsg(200.millis, WaitingConsumerQueryResult(Queue(ActorPath.fromString("akka://RateControlledQueueActorTest/system/testActor-1"))))
+      }
+
+    }
+
     describe("Item") {
-      it("should enqueue item to itemQueue if consumerQueue is empty on receive item from upstream") {
+      it("should enqueue item to itemQueue if consumerQueue is empty") {
         val producer = system.actorOf(Props[Producer], "test-producer")
         val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
         queueActor ! QueueQuery
@@ -35,6 +59,7 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
         expectMsg(QueueQueryResult[Int](Queue(Item(1))))
       }
     }
+
   }
 
 }
