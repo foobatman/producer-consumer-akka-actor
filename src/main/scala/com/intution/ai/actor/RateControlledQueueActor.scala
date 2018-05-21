@@ -17,7 +17,6 @@ class RateControlledQueueActor(producer: ActorRef, size: Int) extends Actor {
 
   override def receive: Receive = {
 
-
     case item: Item[Int] =>
       if (consumerQueue.nonEmpty) {
         val (consumer, modifiedConsumerQueue) = consumerQueue.dequeue

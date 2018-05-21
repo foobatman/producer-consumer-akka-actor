@@ -23,12 +23,17 @@ class RateControlledQueueActorTest() extends TestKit(ActorSystem("RateControlled
       expectMsg(NextItem)
     }
 
-    it("should enqueue item to itemQueue if consumerQueue is empty") {
-      val producer = system.actorOf(Props[Producer], "test-producer")
-      val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
-      queueActor ! QueueQuery
-      Thread.sleep(200)
-      expectMsg(QueueQueryResult[Int](Queue(Item(1))))
+  }
+  describe("RateControlledQueueActor#receive") {
+
+    describe("Item") {
+      it("should enqueue item to itemQueue if consumerQueue is empty on receive item from upstream") {
+        val producer = system.actorOf(Props[Producer], "test-producer")
+        val queueActor = system.actorOf(Props(new RateControlledQueueActor(producer, 10)), "rate-controlled-queue-actor")
+        queueActor ! QueueQuery
+        Thread.sleep(200)
+        expectMsg(QueueQueryResult[Int](Queue(Item(1))))
+      }
     }
   }
 

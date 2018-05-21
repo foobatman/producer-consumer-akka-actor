@@ -13,15 +13,18 @@ class ProducerTest() extends TestKit(ActorSystem("ProducerSpec")) with ImplicitS
     TestKit.shutdownActorSystem(system)
   }
 
-  describe("Producer#receive default behaviour") {
+  describe("Producer#receive") {
 
-    it("should produce next item only when NextItem message is received") {
-      val producer = system.actorOf(Props[Producer], name="TestProducer")
-      producer ! NextItem
-      expectMsg(Item(1))
+    describe("NextItem") {
+      it("should produce next item") {
+        val producer = system.actorOf(Props[Producer], name="TestProducer")
+        producer ! NextItem
+        expectMsg(Item(1))
 
-      producer ! NextItem
-      expectMsg(Item(2))
+        producer ! NextItem
+        expectMsg(Item(2))
+      }
     }
+
   }
 }
