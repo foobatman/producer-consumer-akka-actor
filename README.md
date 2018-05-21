@@ -3,7 +3,7 @@ A simple implementation of producer/consumer with Akka actors ( !Streams )
 
 ### Things it handles:
 * Multiple consumers
-* Non-blocker consumer and producer ( Actors )
+* Non-blocking consumer and producer ( Actors )
 * Back pressure
 * No locking, synchronization is done via message passing
 
