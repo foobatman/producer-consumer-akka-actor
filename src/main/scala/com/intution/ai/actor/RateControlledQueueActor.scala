@@ -26,6 +26,7 @@ class RateControlledQueueActor(producer: ActorRef, size: Int) extends Actor {
       } else {
         val newWaitingConsumerQueue = waitingConsumerQueue.enqueue(consumer)
         waitingConsumerQueue = newWaitingConsumerQueue
+        producer ! NextItem
       }
 
     case item: Item[Int] =>
@@ -39,8 +40,8 @@ class RateControlledQueueActor(producer: ActorRef, size: Int) extends Actor {
         nonConsumedItemQueue = modifiedItemQueue
       }
 
-    case QueueQuery => sender ! {
-      QueueQueryResult[Int](nonConsumedItemQueue)
+    case NonConsumedItemQueueQuery => sender ! {
+      NonConsumedItemQueueQueryResult[Int](nonConsumedItemQueue)
     }
 
     case WaitingConsumerQuery => sender ! WaitingConsumerQueryResult(waitingConsumerQueue.map(_.path))

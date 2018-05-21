@@ -7,8 +7,9 @@ import scala.collection.immutable.Queue
 
 object Messages {
   case object NextItem
-  case object QueueQuery
-  case class QueueQueryResult[T](queue: Queue[Item[T]])
+  case object NonConsumedItemQueueQuery
+  case class NonConsumedItemQueueQueryResult[T](queue: Queue[Item[T]])
   case object WaitingConsumerQuery
   case class WaitingConsumerQueryResult(consumers: Queue[ActorPath])
+  case object LastConsumedItem
 }
